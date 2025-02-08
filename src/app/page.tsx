@@ -1,101 +1,169 @@
-import Image from "next/image";
+"use client"
+
+import { useState, useEffect } from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Youtube, Instagram, Twitter, Facebook } from "lucide-react"
+import { Loader2 } from "lucide-react"
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [url, setUrl] = useState("")
+  const [platform, setPlatform] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [result, setResult] = useState<null | { success: boolean; message: string; downloadUrl?: string }>(null)
+  const [showDisclaimer, setShowDisclaimer] = useState(true)
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+  useEffect(() => {
+    if (url) {
+      if (url.includes("youtube.com") || url.includes("youtu.be")) {
+        setPlatform("youtube")
+      } else if (url.includes("instagram.com")) {
+        setPlatform("instagram")
+      } else if (url.includes("tiktok.com")) {
+        setPlatform("tiktok")
+      } else if (url.includes("twitter.com") || url.includes("x.com")) {
+        setPlatform("twitter")
+      } else if (url.includes("facebook.com")) {
+        setPlatform("facebook")
+      } else {
+        setPlatform("")
+      }
+    }
+  }, [url])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setResult(null)
+
+    try {
+      const response = await fetch("/api/download", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url, platform }),
+      })
+
+      const data = await response.json()
+      setResult(data)
+    } catch (error) {
+      setResult({ success: false, message: "An error occurred. Please try again." })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-gradient-to-b from-blue-100 to-white">
+      <Card className="w-full max-w-2xl">
+        <CardHeader>
+          <CardTitle className="text-3xl font-bold text-center">Social Media Downloader</CardTitle>
+          <CardDescription className="text-center">
+            Download content from YouTube, Instagram, TikTok, Twitter, and Facebook
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <Input
+              type="url"
+              placeholder="Enter URL here"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              required
+              className="w-full"
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            <div className="flex flex-wrap justify-center gap-2">
+              <Button
+                type="button"
+                onClick={() => setPlatform("youtube")}
+                variant={platform === "youtube" ? "default" : "outline"}
+              >
+                <Youtube className="mr-2 h-4 w-4" /> YouTube
+              </Button>
+              <Button
+                type="button"
+                onClick={() => setPlatform("instagram")}
+                variant={platform === "instagram" ? "default" : "outline"}
+              >
+                <Instagram className="mr-2 h-4 w-4" /> Instagram
+              </Button>
+              <Button
+                type="button"
+                onClick={() => setPlatform("tiktok")}
+                variant={platform === "tiktok" ? "default" : "outline"}
+              >
+                <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
+                </svg>{" "}
+                TikTok
+              </Button>
+              <Button
+                type="button"
+                onClick={() => setPlatform("twitter")}
+                variant={platform === "twitter" ? "default" : "outline"}
+              >
+                <Twitter className="mr-2 h-4 w-4" /> Twitter
+              </Button>
+              <Button
+                type="button"
+                onClick={() => setPlatform("facebook")}
+                variant={platform === "facebook" ? "default" : "outline"}
+              >
+                <Facebook className="mr-2 h-4 w-4" /> Facebook
+              </Button>
+            </div>
+            <Button type="submit" className="w-full" disabled={!url || !platform || loading}>
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                "Download"
+              )}
+            </Button>
+          </form>
+          {result && (
+            <div
+              className={`mt-4 p-4 rounded-md ${result.success ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}
+            >
+              <p>{result.message}</p>
+              {result.success && result.downloadUrl && (
+                <Button asChild className="mt-2">
+                  <a href={result.downloadUrl} download>
+                    Download File
+                  </a>
+                </Button>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+      {showDisclaimer && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg p-6 max-w-md">
+            <h2 className="text-2xl font-bold mb-4">Legal Disclaimer</h2>
+            <p className="mb-4">
+              This tool is intended for educational purposes only. Downloading copyrighted content without permission
+              may violate:
+            </p>
+            <ul className="list-disc pl-5 mb-4">
+              <li>YouTube Terms of Service (Section 5.B)</li>
+              <li>Instagram Terms of Use (Section 4)</li>
+              <li>TikTok Terms of Service (Section 2.B)</li>
+              <li>Twitter/X Developer Agreement (Section II.A)</li>
+            </ul>
+            <p className="mb-4">
+              By using this service, you agree that you will only download content you have explicit rights to access
+              and distribute.
+            </p>
+            <Button onClick={() => setShowDisclaimer(false)} className="w-full">
+              I Understand
+            </Button>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+      )}
+    </main>
+  )
 }
+
