@@ -172,4 +172,4 @@ SOFTWARE.
 
 ---
 
-Made with ❤️ by the Cypheir Team.
+Made with 💙 by the Cypheir Team.
